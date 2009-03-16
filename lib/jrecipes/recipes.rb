@@ -5,6 +5,8 @@ Capistrano::Configuration.instance(:must_exist).load do
 
   # Set the default deploy method to war_file
   set :deploy_via, :war_file
+  # Allow another round of update_code with another strategy
+  set :deploy_via_secondary, nil
 
   # Set the defaults for tomcat deployment
   set :app_server, :tomcat
@@ -46,6 +48,30 @@ Capistrano::Configuration.instance(:must_exist).load do
       if migrate_config != "config/database.yml"
         File.mv "config/database_cap_backup.yml", "config/database.yml"
       end
+    end
+
+    desc <<-DESC
+      Copies your project to the remote servers. This is the first stage \
+      of any deployment; moving your updated code and assets to the deployment \
+      servers. You will rarely call this task directly, however; instead, you \
+      should call the `deploy' task (to do a complete deploy) or the `update' \
+      task (if you want to perform the `restart' task separately).
+
+      JRecipes sets the default deployment strategy to :war_file which creates \
+      a war file locally and uploads it to the release path. However, you \
+      might want to do a regular checkout or other form of code update, in \
+      order to have your full project in your release path. If you want this \
+      set the :deploy_via_secondary variable to the strategy that this should \
+      use, and make sure you set the :scm variable to the source control \
+      software you are using (it defaults to :subversion).
+    DESC
+    task :update_code, :except => { :no_release => true } do
+      on_rollback { run "rm -rf #{release_path}; true" }
+      strategy.deploy!
+      if deploy_via_secondary and deploy_via_secondary.to_sym != deploy_via.to_sym
+        Capistrano::Deploy::Strategy.new(deploy_via_secondary, self).deploy!
+      end
+      finalize_update
     end
 
     desc "[internal] Runs app server specific symlink task."
