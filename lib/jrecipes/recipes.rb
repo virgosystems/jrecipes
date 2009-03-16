@@ -80,7 +80,7 @@ Capistrano::Configuration.instance(:must_exist).load do
     task :app_server_symlink, :roles => :app do
       begin
         find_and_execute_task("#{app_server}:symlink")
-      rescue NoSuchTaskError
+      rescue Capistrano::NoSuchTaskError
         # rescue NoSuchTaskError silently
       end
     end
@@ -98,7 +98,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       task :app_server_rollback, :roles => :app do
         begin
           find_and_execute_task("#{app_server}:rollback")
-        rescue NoSuchTaskError
+        rescue Capistrano::NoSuchTaskError
           # rescue NoSuchTaskError silently
         end
       end
