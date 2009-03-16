@@ -67,10 +67,12 @@ Capistrano::Configuration.instance(:must_exist).load do
     DESC
     task :update_code, :except => { :no_release => true } do
       on_rollback { run "rm -rf #{release_path}; true" }
-      strategy.deploy!
+      # We do the secondary strategy first since it might expect that the
+      # release_path doesn't exist
       if deploy_via_secondary and deploy_via_secondary.to_sym != deploy_via.to_sym
         Capistrano::Deploy::Strategy.new(deploy_via_secondary, self).deploy!
       end
+      strategy.deploy!
       finalize_update
     end
 

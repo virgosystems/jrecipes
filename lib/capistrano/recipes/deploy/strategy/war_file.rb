@@ -10,7 +10,7 @@ module Capistrano
       class WarFile < Base
         # First builds a war file then sends it to the remote server's release_path
         def deploy!
-          build_war_file
+          build_war_file unless configuration.fetch(:dont_build_war, false)
           send_war_file
         end
 
