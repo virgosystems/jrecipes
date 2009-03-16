@@ -13,6 +13,7 @@ Capistrano::Configuration.instance(:must_exist).load do
   set :tomcat_webapp, "ROOT"
   set :tomcat_run_method, defer { fetch(:run_method, :sudo) }
   set :tomcat_options, ""
+  set :class_path, ""
 
   namespace :deploy do
     desc <<-DESC
@@ -83,6 +84,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       invoke_command <<-CMD, :via => tomcat_run_method
         sh -c '
           cd "#{tomcat_path}" &&
+          CLASSPATH="$CLASSPATH#{":#{class_path}" unless class_path.empty?}"
           JAVA_OPTS="#{tomcat_options}" bin/startup.sh
         '
       CMD
